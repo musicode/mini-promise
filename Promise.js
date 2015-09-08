@@ -161,16 +161,16 @@ function flush(promise) {
             if (func) {
 
                 // 如果 itemResolve 或 itemReject 返回了一个值 x
-                // 需要执行 resolvePromiseInner(itemPromise, x)
+                // 需要执行 resolvePromise(itemPromise, x)
 
                 // 如果 itemResolve 或 itemReject 抛出了一个异常 e，
-                // 需要执行 rejectPromiseInner(itemPromise, e)
+                // 需要执行 rejectPromise(itemPromise, e)
 
                 try {
-                    resolvePromiseInner(itemPromise, func(param));
+                    resolvePromise(itemPromise, func(param));
                 }
                 catch (e) {
-                    rejectPromiseInner(itemPromise, e);
+                    rejectPromise(itemPromise, e);
                 }
 
                 func = null;
@@ -201,24 +201,28 @@ function adoptPromise(source, target) {
     if (status === STATUS_PENDING) {
         target.then(
             function (value) {
-                return resolvePromiseInner(source, value);
+                return resolvePromise(source, value);
             },
             function (reason) {
-                return rejectPromiseInner(source, reason);
+                return rejectPromise(source, reason);
             }
         );
     }
     else if (status === STATUS_FULFILLED) {
-        resolvePromiseInner(source, target.value);
+        resolvePromise(source, target.value);
     }
     else if (status === STATUS_REJECTED) {
-        rejectPromiseInner(source, target.reason);
+        rejectPromise(source, target.reason);
     }
 
 }
 
 
-function resolvePromiseInner(promise, value) {
+function resolvePromise(promise, value) {
+
+    if (promise.status !== STATUS_PENDING) {
+        return;
+    }
 
     if (promise === value) {
         throw new Error('promise and value refer to the same object.');
@@ -257,14 +261,14 @@ function resolvePromiseInner(promise, value) {
                             return;
                         }
                         isResolved = true;
-                        resolvePromiseInner(promise, value);
+                        resolvePromise(promise, value);
                     },
                     function (reason) {
                         if (isRejected) {
                             return;
                         }
                         isRejected = true;
-                        rejectPromiseInner(promise, reason);
+                        rejectPromise(promise, reason);
                     }
                 );
 
@@ -279,7 +283,7 @@ function resolvePromiseInner(promise, value) {
 
                 isProcessed = true;
 
-                rejectPromiseInner(promise, e);
+                rejectPromise(promise, e);
 
             }
         }
@@ -293,36 +297,17 @@ function resolvePromiseInner(promise, value) {
 
 }
 
-function resolvePromiseOuter(promise, value) {
+function rejectPromise(promise, reason) {
 
     if (promise.status !== STATUS_PENDING) {
         return;
     }
-
-    resolvePromiseInner(promise, value);
-
-    flush(promise);
-
-}
-
-function rejectPromiseInner(promise, reason) {
 
     promise.status = STATUS_REJECTED;
     promise.reason = reason;
 
 }
 
-function rejectPromiseOuter(promise, reason) {
-
-    if (promise.status !== STATUS_PENDING) {
-        return;
-    }
-
-    rejectPromiseInner(promise, reason);
-
-    flush(promise);
-
-}
 
 /**
  *
@@ -353,10 +338,12 @@ function Promise(executor) {
 
     executor(
         function (value) {
-            resolvePromiseOuter(me, value);
+            resolvePromise(me, value);
+            flush(me);
         },
         function (reason) {
-            rejectPromiseOuter(me, reason);
+            rejectPromise(me, reason);
+            flush(me);
         }
     );
 
@@ -418,30 +405,39 @@ Promise.all = function (promises) {
     var result = Promise(noop);
 
     var length = promises.length;
+    var couter = 0;
     var values = [ ];
 
     // 全部成功才执行 onFulfilled
     // 只要有一个失败就算整体失败
 
-    var onFulfilled = function (value) {
+    var onFulfilled = function (index, value) {
 
-        values.push(value);
+        values[ index ] = value;
 
-        if (values.length === length) {
-            resolvePromiseOuter(result, values);
+        if (++couter === length) {
+            resolvePromise(result, values);
+            flush(result);
         }
 
     };
 
-    var onRejected = function (reason) {
-        rejectPromiseOuter(result, reason);
+    var onRejected = function (index, reason) {
+        rejectPromise(result, reason);
+        flush(result);
     };
 
     for (var i = 0; i < length; i++) {
-        promises[ i ].then(
-            onFulfilled,
-            onRejected
-        );
+        (function (index) {
+            promises[ index ].then(
+                function (value) {
+                    onFulfilled(index, value);
+                },
+                function (value) {
+                    onRejected(index, value);
+                }
+            );
+        })(i);
     }
 
     return result;
