@@ -1,0 +1,24 @@
+{
+  "name": "mini-promise",
+  "version": "1.0.0",
+  "description": "very very mini promise, based on Promises/A+.",
+  "main": "Promise.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/musicode/mini-promise.git"
+  },
+  "keywords": [
+    "mini",
+    "promise",
+    "Promises/A+"
+  ],
+  "author": "musicode",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/musicode/mini-promise/issues"
+  },
+  "homepage": "https://github.com/musicode/mini-promise"
+}
