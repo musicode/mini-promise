@@ -329,7 +329,7 @@ function Promise(executor) {
     }
 
     if (typeof executor !== 'function') {
-        throw Error('Promise resolver executor is not a function.');
+        throw new Error('Promise resolver executor is not a function.');
     }
 
     me.status = STATUS_PENDING;
