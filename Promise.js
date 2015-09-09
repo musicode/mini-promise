@@ -16,7 +16,7 @@
  */
 
 // value 不用数字是因为调试起来方便
-var STATUS_PENDING = 'pendding';
+var STATUS_PENDING = 'pending';
 var STATUS_FULFILLED = 'fulfilled';
 var STATUS_REJECTED = 'rejected';
 

@@ -1,7 +1,7 @@
 {
   "name": "mini-promise",
   "version": "1.0.1",
-  "description": "very very mini promise, based on Promises/A+.",
+  "description": "a very very mini promise, based on Promises/A+.",
   "main": "Promise.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
