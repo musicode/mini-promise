@@ -1,6 +1,6 @@
 {
   "name": "mini-promise",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a very very mini promise, based on Promises/A+.",
   "main": "Promise.js",
   "scripts": {
