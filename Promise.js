@@ -44,6 +44,9 @@ else {
     nextTick = setTimeout;
 }
 
+function isObject(obj) {
+    return obj && typeof fn === 'object';
+}
 
 function isFunction(fn) {
     return typeof fn === 'function';
@@ -238,10 +241,9 @@ function resolvePromise(promise, value) {
         adoptPromise(promise, value);
 
     }
-    else if (typeof value === 'object' || isFunction(value)) {
+    else if (isObject(value) || isFunction(value)) {
 
-        var isResolved = false;
-        var isRejected = false;
+        var isPending = true;
 
         try {
 
@@ -257,17 +259,17 @@ function resolvePromise(promise, value) {
                     value,
                     // resolve 和 reject 确保只执行一次
                     function (value) {
-                        if (isResolved) {
+                        if (!isPending) {
                             return;
                         }
-                        isResolved = true;
+                        isPending = false;
                         resolvePromise(promise, value);
                     },
                     function (reason) {
-                        if (isRejected) {
+                        if (isPending) {
                             return;
                         }
-                        isRejected = true;
+                        isPending = false;
                         rejectPromise(promise, reason);
                     }
                 );
@@ -279,7 +281,7 @@ function resolvePromise(promise, value) {
 
             // exception
 
-            if (!isResolved && !isRejected) {
+            if (isPending) {
 
                 isProcessed = true;
 
