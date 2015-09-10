@@ -3,6 +3,8 @@
  * @author musicode
  */
 
+(function (root) {
+
 'use strict';
 
 /**
@@ -20,6 +22,21 @@ var STATUS_PENDING = 'pending';
 var STATUS_FULFILLED = 'fulfilled';
 var STATUS_REJECTED = 'rejected';
 
+function isObject(obj) {
+    return typeof obj === 'object' && obj;
+}
+
+function isFunction(fn) {
+    return typeof fn === 'function';
+}
+
+function isPromise(p) {
+    return p instanceof Promise;
+}
+
+function noop() {
+
+}
 
 // 当 promise 是 fulfilled 或 rejected 状态时
 // then(onFulfilled, onRejected) 需要异步执行
@@ -42,22 +59,6 @@ else if (isFunction(setImmediate)) {
 // 不用搞太复杂，直接 setTimeout
 else {
     nextTick = setTimeout;
-}
-
-function isObject(obj) {
-    return obj && typeof fn === 'object';
-}
-
-function isFunction(fn) {
-    return typeof fn === 'function';
-}
-
-function isPromise(p) {
-    return p instanceof Promise;
-}
-
-function noop() {
-
 }
 
 /**
@@ -471,5 +472,16 @@ Promise.reject = function (reason) {
 };
 
 
-module.exports = Promise;
+if (isObject(module)) {
+    module.exports = Promise;
+}
+else if (isFunction(define) && define.amd) {
+    define(function () {
+        return Promise;
+    });
+}
+else {
+    root.Promise = Promise;
+}
 
+})(this);
