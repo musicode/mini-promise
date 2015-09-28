@@ -105,10 +105,6 @@ else {
  */
 function flush(promise) {
 
-    if (promise.list === 0) {
-        return;
-    }
-
     var list;
     var item;
 
